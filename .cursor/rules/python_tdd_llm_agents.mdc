@@ -1,0 +1,113 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Best Practices for TDD in Python LLM Agent Workflows
+
+This document outlines best practices for Test-Driven Development (TDD) when building multi-agent systems using LangChain, LangGraph, and LangSmith.
+
+---
+
+## 1. TDD Philosophy for LLM Agents: "Eval-Driven Development"
+
+Given the non-deterministic nature of LLMs, traditional TDD's Red-Green-Refactor loop is adapted. The core idea is to move towards **Evaluation-Driven Development**.
+
+-   **Write an Evaluation (The "Test")**: Before writing your agent or graph logic, define what "good" looks like. Create a dataset in LangSmith with representative examples of inputs and desired outcomes.
+-   **Write the Code (Make it "Pass")**: Implement your LangGraph agents, tools, and state management. The goal is to make your system perform well against the evaluation dataset.
+-   **Analyze & Refactor**: Use LangSmith traces to understand failures. Were the prompts weak? Did a tool fail? Was the state transition incorrect? Refine your prompts, logic, and tools, then re-run the evaluation.
+
+---
+
+## 2. Unit Testing: Isolate Your Components
+
+For speed and determinism, unit test individual components by mocking external dependencies like LLM APIs and other tools.
+
+### Testing Agent Tools
+-   Tools should have their own unit tests to ensure they are reliable *before* being given to an agent.
+-   Mock any external APIs the tool might call.
+
+```python
+# Example: testing a calculator tool
+def test_calculator_tool_addition():
+    tool = CalculatorTool()
+    result = tool.run("1 + 1")
+    assert result == "2"
+```
+
+### Testing Prompt Templates
+-   Ensure that your prompts are formatted correctly with the given inputs.
+
+```python
+# Example: testing a prompt
+def test_planner_prompt_formatting():
+    prompt = PromptTemplate.from_template("Plan the steps for: {input}")
+    formatted_prompt = prompt.format(input="writing a book")
+    assert "writing a book" in formatted_prompt
+```
+
+---
+
+## 3. Integration Testing: Validate the Graph
+
+Integration tests should focus on the structure and flow of your LangGraph implementation. They verify that agents are connected correctly and that state is managed as expected.
+
+### Test State Transitions
+-   For a given input, assert that the application state changes correctly after a node has executed.
+-   You can run the graph for a single step and inspect the resulting state.
+
+### Test Conditional Edges
+-   Ensure your graph correctly routes between nodes based on the state.
+-   Create specific scenarios that trigger each branch of a conditional edge and assert that the `next` node is the correct one.
+
+```python
+# Example: testing a conditional edge in LangGraph
+def test_router_sends_to_correct_agent():
+    app = build_graph()
+    # Mock the state to force a specific path
+    initial_state = {"task": "Write a report", "next_agent": "researcher"}
+    # You might need to run a step or two
+    final_state = app.invoke(initial_state)
+    # Assert the router correctly identified the next step
+    assert final_state["next_agent"] == "writer"
+```
+---
+
+## 4. Evaluation with LangSmith: The Source of Truth
+
+LangSmith is critical for testing the *quality* of your LLM outputs.
+
+### Curate Datasets
+-   Create datasets in LangSmith that cover a wide range of use cases, including edge cases and expected failure modes.
+-   A good dataset is the foundation of reliable evaluation.
+
+### Implement Custom Evaluators
+-   While standard evaluators (e.g., embedding distance, string similarity) are useful, you will often need custom evaluators.
+-   A custom evaluator is a Python function that programmatically checks for correctness based on your specific criteria (e.g., Does the output contain valid JSON? Did the agent call the right sequence of tools?).
+
+```python
+# Example: a custom evaluator for LangSmith
+from langsmith.evaluation import EvaluationResult, run_evaluator
+
+@run_evaluator
+def must_call_tool(run, example) -> EvaluationResult:
+    # Check if a specific tool was called during the trace
+    tool_was_called = any(
+        event.name == "YourToolName"
+        for event in run.events
+        if event.event_type == "tool"
+    )
+    return EvaluationResult(
+        key="must_call_tool",
+        score=int(tool_was_called)
+    )
+```
+---
+
+## 5. Mocking Strategy
+
+-   Use `unittest.mock.patch` or libraries like `pytest-mock` to mock `ChatOpenAI` or other LLM clients during unit tests.
+-   This makes your tests fast, free, and deterministic.
+-   Reserve actual LLM calls for evaluations in LangSmith.
+
+This structured TDD approach will help you build more robust, predictable, and effective multi-agent systems.

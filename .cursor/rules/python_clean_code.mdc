@@ -1,0 +1,94 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Python Clean Code & Best Practices
+
+This document sets the standard for writing clean, readable, and maintainable Python code for this project. Apply these rules when writing or reviewing code to ensure consistency and quality.
+
+---
+
+## Core Principles
+
+### 1. Mandatory Type Hinting
+All new functions and methods, for both their arguments and return values, MUST be typed. This is not optional.
+- Use type hints for all function parameters and returns.
+- Import types from the `typing` module. Use built-in generics (e.g., `list[int]`) over `typing` equivalents (`List[int]`) for Python 3.9+.
+- For functions that don't return anything, use `-> None`.
+- Use `Optional[Type]` for values that can be `None`.
+- Define custom types in a dedicated `types.py` if necessary.
+
+```python
+# Correct: Fully typed function
+def get_user_by_id(user_id: int) -> Optional[dict[str, any]]:
+    # ... implementation ...
+```
+
+### 2. Single Responsibility
+- Each function, class, and module should do exactly one thing and have a single, well-defined purpose.
+- Functions should be small and focused. If a function needs comments to explain what it does, it should probably be split.
+
+### 3. DRY (Don't Repeat Yourself)
+- Extract repeated code into reusable functions or classes.
+- Share common logic through proper abstraction to maintain a single source of truth.
+
+### 4. Meaningful Names
+- Variables, functions, and classes should have names that clearly reveal their purpose.
+- Names should explain why something exists and how it's used. Avoid abbreviations unless they're universally understood.
+- Follow PEP 8 naming conventions: `snake_case` for functions/variables, `PascalCase` for classes, `UPPER_CASE` for constants.
+
+### 5. Constants Over Magic Numbers
+- Replace hard-coded, unexplained values with named constants.
+- Use descriptive constant names that explain the value's purpose.
+- Keep constants at the top of the file or in a dedicated constants module.
+
+---
+
+## Code Structure & Formatting
+
+### 1. Code Style
+- Follow **Black** for code formatting (max line length of 88 characters).
+- Use **isort** for automatically sorting imports.
+- Use absolute imports over relative imports.
+
+### 2. Smart Comments & Docstrings
+- Don't comment on *what* the code does—make the code self-documenting.
+- Use comments to explain *why* something is done a certain way (e.g., documenting complex algorithms or non-obvious side effects).
+- Use Google-style docstrings for all public modules, classes, and functions.
+
+### 3. Clean Structure & Encapsulation
+- Keep related code together and organize it in a logical hierarchy.
+- Hide implementation details and expose clear, minimal interfaces.
+- Move complex conditional logic into well-named functions.
+
+### 4. Project Layout
+- Use a `src`-layout: `src/your_package_name/`
+- Place tests in a `tests/` directory parallel to `src/`.
+- Store configuration in environment variables or a dedicated `config/` directory.
+
+---
+
+## Development Workflow & Quality
+
+### 1. Testing
+- Use **pytest** for testing.
+- Write tests before fixing bugs. Keep tests readable and maintainable.
+- Test all routes, error scenarios, and edge cases.
+- Use `pytest-cov` for measuring code coverage.
+- Use `pytest-mock` for proper mocking of external services.
+
+### 2. Version Control
+- Write clear, concise commit messages that explain the "why" behind changes.
+- Make small, focused commits that represent a single logical change.
+- Use meaningful branch names (e.g., `feature/add-user-auth`, `fix/login-bug`).
+
+### 3. Dependencies
+- Pin dependency versions in `requirements.txt`.
+- Separate production and development dependencies.
+- Regularly update dependencies and check for security vulnerabilities.
+
+### 4. Code Quality Maintenance
+- Refactor continuously. Leave the code cleaner than you found it.
+- Fix technical debt as early as possible.
+- Implement pre-commit hooks to automate formatting and linting.

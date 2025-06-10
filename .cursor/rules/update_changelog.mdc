@@ -1,0 +1,6 @@
+---
+description: When we are finishing an implementation stage, apply this rule.
+globs: 
+alwaysApply: false
+---
+Always document recent changes in [changelog.md](mdc:Docs/changelog.md) when we are finishing an implementation stage.

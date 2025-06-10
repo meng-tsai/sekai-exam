@@ -1,0 +1,28 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Rule: Use Context7 for Third-Party Library Documentation
+
+When writing or modifying code that interacts with any third-party library (e.g., `requests`, `pandas`, `langchain`, `fastapi`), you MUST use the `context7` MCP tool to retrieve the latest, most relevant documentation.
+
+---
+
+## Rationale
+
+Using up-to-date documentation is critical for:
+- Avoiding deprecated functions and APIs.
+- Implementing features correctly according to the library's current standards.
+- Ensuring reliability and preventing bugs caused by outdated examples.
+
+---
+
+## Required Workflow
+
+1.  **Identify the Library**: Before writing code that uses a third-party library, state which library you are using.
+2.  **Resolve Library ID**: First, you must call the `mcp_context7_resolve-library-id` tool to find the official Context7 ID for the library in question.
+3.  **Fetch Documentation**: Once the ID is resolved, use the `mcp_context7_get-library-docs` tool with that ID and a specific topic to get the documentation.
+4.  **Implement Based on Docs**: Use the information from the retrieved documentation to write your code. Do not rely on your own internal knowledge without first consulting the documentation via this process.
+
+This process is mandatory to ensure all implementations are based on the latest and most accurate information available from the library authors.
