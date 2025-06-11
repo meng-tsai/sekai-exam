@@ -112,3 +112,4 @@
 
     * **Configuration Management:**
         * API keys and operational parameters will be managed through a `.env` file.
+        * Key configuration variables: `MAX_ITERATIONS`, `MAX_OPTIMIZATION_MINUTE`, `INIT_STRATEGY_PROMPT`, `USER_PER_BATCH`.
