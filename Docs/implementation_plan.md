@@ -1,116 +1,118 @@
-# Sekai Optimizer: Implementation Plan
+# Sekai Optimizer: Implementation Plan (v1.2)
 
-**Document Version:** 1.0
-**Based on Design Doc:** `v2.2 (Final)`
+**Document Version:** 1.2
+**Architecture:** Granular Node Workflow based on User Diagram
+**Based on Design Doc:** `v2.4 (Final, Clarified)`
 
 ---
 
 ## 1. Guiding Principles
 
-    * **Test-Driven Development (TDD):** For every piece of logic, a corresponding test will be written *first*. Implementation follows the test's specification. This ensures correctness and facilitates refactoring.
-    * **Phased Development:** The project is broken down into logical stages. Each stage delivers a testable, functional component, allowing for incremental progress and early validation.
-    * **Comprehensive Testing:** The plan includes unit tests for individual functions, integration tests for components, and a final end-to-end (E2E) test for the entire system.
+    * **Test-Driven Development (TDD):** Every node in the graph will have its own dedicated test written *before* implementation.
+    * **Modular Node Implementation:** Each white box in the diagram will be implemented as an independent, testable Python function (a LangGraph node).
+    * **Incremental Graph Assembly:** We will build and test nodes individually, then assemble them into the final graph, ensuring reliability at each step.
 
 ---
 
-## Stage 0: Project Foundation & Environment Setup
+## Stage 0: Project Foundation & Pre-flight Setup
 
     **Goal:** Establish a clean, reproducible, and professional project structure.
 
-    * **Step 0.1: Initialize Project Structure**
-        * Create the main project directory.
-        * Initialize a Git repository (`git init`).
-        * Create the core directory structure (`/agents`, `/workflows`, `/data`, `/tests`).
-        * Create an initial `.gitignore` file, ensuring to include `.env`, `__pycache__/`, and other common Python artifacts.
+    * **Step 0.1: Initialize Project & Git**
+        * Create the main project directory and initialize Git.
+        * Establish the directory structure: `/nodes` (for node logic), `/data`, `/tests`, `/scripts`.
+        * Create `.gitignore` and `.env.example` files.
 
-    * **Step 0.2: Dependency & Environment Management**
-        * Create `requirements.txt` and add initial core dependencies (e.g., `langchain`, `langgraph`, `openai`, `google-generativeai`, `python-dotenv`, `faiss-cpu`, `sentence-transformers`).
-        * Create the `Dockerfile` and a `docker-compose.yml` (optional, but recommended) for easy execution.
-        * Create the `.env.example` file listing all required environment variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`, `LANGCHAIN_API_KEY`, etc.).
-        * Create the local `.env` file for development.
-
-    * **Step 0.3: Configure Tooling**
-        * Set up a new project in **LangSmith** to obtain the necessary credentials.
-        * Verify that environment variables are correctly loaded and that basic connections to LangSmith can be established.
+    * **Step 0.2: Environment & Tooling Setup**
+        * Finalize `requirements.txt` with all necessary packages.
+        * Set up the `Dockerfile` for one-command execution.
+        * Configure **LangSmith** for observability.
 
 ---
 
-## Stage 1: Data Pipeline & Core Recommendation Workflow
+## Stage 1: Foundational Data & Offline Nodes
 
-    **Goal:** Build and test the data foundation and the core "action" component of the system.
+    **Goal:** Prepare all necessary data assets before the main optimization loop begins. These nodes correspond to the pre-loop setup.
 
-    * **Step 1.1: Data Synthesis & Preparation**
-        * **Test:** Write a test (`tests/test_data.py`) to verify that the data synthesis script generates the correct number of stories and users, and that the output data structure matches the expected schema (e.g., a list of dicts with required keys).
-        * **Implement:** Create a Python script (`scripts/synthesize_data.py`) that calls an LLM to generate ≈100 stories and ≈50 user profiles, saving them as JSON files in the `/data` directory.
+    * **Step 1.1: `synthesize_data_node`**
+        * **Goal:** Generate the story and user datasets.
+        * **Test:** Write a test to assert that the script generates the correct number and format of stories/users and splits them correctly into training/validation sets.
+        * **Implement:** Create a script in `/scripts/setup.py` that encapsulates this logic. This will be run once during the Docker build or via a setup command.
 
-    * **Step 1.2: Embedding and Vector Store Creation (Retriever)**
-        * **Test:** Write a test to ensure the embedding script correctly loads the story data, uses the OpenAI embedding model, and successfully creates and saves a FAISS index file. The test should assert that the number of vectors in the index matches the number of stories.
-        * **Implement:** Create a script (`scripts/build_index.py`) that performs the one-time embedding process and saves the FAISS index to disk.
-
-    * **Step 1.3: Recommendation Workflow Implementation (Ranker)**
-        * **Test:** Write an integration test (`tests/test_recommendation.py`) for the two-stage RAG workflow. This test will use a pre-built, small mock FAISS index. It will assert that given a set of tags, the workflow function correctly queries the index, calls the ranker LLM (mocked), and returns a list of exactly 10 story IDs in the specified JSON format.
-        * **Implement:** Create the `RecommendationWorkflow` in `/workflows/recommendation.py`. This function will encapsulate the logic for vectorizing a query, retrieving candidates from FAISS, and then using the Ranker LLM to produce the final list.
+    * **Step 1.2: `build_index_node`**
+        * **Goal:** Create and save the FAISS vector index.
+        * **Test:** Write a test to assert that the script loads stories, uses the OpenAI embedding model, and saves a valid FAISS index file to disk.
+        * **Implement:** Add this logic to the `/scripts/setup.py` script to be run after data synthesis.
 
 ---
 
-## Stage 2: The "Judge" - Evaluation Agent
+## Stage 2: Core Loop Node Implementation & Unit Testing
 
-    **Goal:** Build and test the component responsible for scoring the recommendations.
+    **Goal:** Implement and individually test each node that will be part of the main LangGraph loop.
 
-    * **Step 2.1: Implement Scoring Logic**
-        * **Test:** Write pure unit tests (`tests/test_scoring.py`) for the metric calculation functions. For `calculate_p10`, provide known lists and assert the correct precision. For `calculate_semantic_similarity`, provide known vectors and assert the correct cosine similarity.
-        * **Implement:** Create the scoring utility functions in a `/utils/scoring.py` file.
+    * **Step 2.1: `pick_users_node`**
+        * **Goal:** Randomly select a batch of users from the training set.
+        * **Test:** Write a unit test (`tests/test_nodes.py`) that provides a mock user list and asserts the function returns a batch of the correct size and that all users are from the provided list.
+        * **Implement:** Create the function in `/nodes/data_nodes.py`.
 
-    * **Step 2.2: Implement Evaluation Tools**
-        * **Test:** Write unit tests for the agent's internal tools (`ground_truth_generator`, `tag_simulator`). These tests will mock the LLM calls and assert that the tools return data in the correct format (e.g., a list of 10 integers for ground truth).
-        * **Implement:** Create the tool functions that will be used by the Evaluation Agent.
+    * **Step 2.2: `simulate_tags_node`**
+        * **Goal:** Simulate tags for each user in the batch.
+        * **Test:** Write a unit test that mocks the LLM call. It will provide a sample user profile and assert that the function returns a list of strings.
+        * **Implement:** Create the function in `/nodes/evaluation_nodes.py`.
 
-    * **Step 2.3: Assemble and Test the Evaluation Agent**
-        * **Test:** Write an integration test (`tests/test_evaluation_agent.py`) for the complete `EvaluationAgent`. This test will provide a mock user profile and a list of recommended IDs. It will assert that the agent correctly calls its tools (mocked) and returns a final `evaluation_result` dictionary containing all the required keys (`score`, `feedback`, etc.) with the correct data types.
-        * **Implement:** In `/agents/evaluation.py`, assemble the tools and the agent logic using the LangChain agent framework.
+    * **Step 2.3: `recommend_stories_node`**
+        * **Goal:** Execute the RAG workflow for each user in the batch.
+        * **Test:** Write an integration test using a mock FAISS index. It will assert that for a given user's tags and a strategy prompt, the function returns exactly 10 story IDs.
+        * **Implement:** Create the function in `/nodes/recommendation_nodes.py`.
 
----
+    * **Step 2.4: `generate_groundtruths_node`**
+        * **Goal:** Generate the ground truth list for each user in the batch.
+        * **Test:** Write a unit test that mocks the LLM call. Provide a user profile and assert it returns a list of 10 integer IDs.
+        * **Implement:** Create the function in `/nodes/evaluation_nodes.py`.
 
-## Stage 3: The "Brain" - Prompt-Optimizer Agent
+    * **Step 2.5: `evaluate_node`**
+        * **Goal:** Calculate scores and synthesize a single, generalizable feedback string for the entire batch.
+        * **Test:** Write a unit test providing mock recommendations and ground truths for a batch. It should assert the function returns a dictionary with the correct average scores and a non-empty feedback string. Mock the LLM call used for synthesis.
+        * **Implement:** Create the function in `/nodes/evaluation_nodes.py`, implementing the two-stage feedback mechanism.
 
-    **Goal:** Build and test the component responsible for evolving the prompt.
-
-    * **Step 3.1: Set up Prompt Hub**
-        * Create the initial versions of the system's meta-prompts (for the evaluator and optimizer) directly in the **LangSmith Prompt Hub**.
-
-    * **Step 3.2: Implement and Test the Prompt-Optimizer Agent**
-        * **Test:** Write an integration test (`tests/test_optimizer_agent.py`). Provide it with a mock `evaluation_result` and `evaluation_history`. The test will mock the LLM call and assert that the agent returns a non-empty string, which represents the new prompt.
-        * **Implement:** In `/agents/optimizer.py`, create the `PromptOptimizerAgent`. Its logic will pull the relevant meta-prompt from the LangSmith Hub, combine it with the inputs, and call the reasoning model to generate the next strategy prompt.
-
----
-
-## Stage 4: End-to-End System Integration & Testing
-
-    **Goal:** Assemble all tested components into the final LangGraph application and verify the entire loop functions correctly.
-
-    * **Step 4.1: Define the State and Graph**
-        * **Implement:** In `main.py`, define the application's state graph in **LangGraph**. This involves defining the nodes (each agent/workflow) and the edges that dictate the flow of information (e.g., from evaluator to optimizer). Define the logic for the entry point and the conditional edges (e.g., checking the stopping rule).
-
-    * **Step 4.2: Final End-to-End (E2E) Test**
-        * **Test:** Create a comprehensive E2E test script (`tests/test_e2e.py`). This script will:
-            1. Use a small, fixed subset of the data (e.g., 10 stories, 5 users).
-            2. Run the entire LangGraph application for a fixed number of iterations (e.g., 2 cycles).
-            3. The test will **not** mock any LLM calls but will use real API calls to ensure full integration.
-            4. It will assert that the application completes without errors and that the final state contains an optimized prompt. This test verifies that all components are wired together correctly and can communicate as designed.
-        * **Refine:** Debug and refine the LangGraph implementation based on the E2E test results.
+    * **Step 2.6: `optimize_prompt_node`**
+        * **Goal:** Generate a new, improved strategy prompt.
+        * **Test:** Write a unit test that mocks the LLM call. Provide a sample evaluation result and assert the function returns a new prompt string.
+        * **Implement:** Create the function in `/nodes/optimizer_nodes.py`.
 
 ---
 
-## Stage 5: Finalization & Deliverables
+## Stage 3: Graph Assembly, Prompt Management & E2E Testing
+
+    **Goal:** Wire all tested nodes together, ensure robust prompt management, and verify the entire system functions as a cohesive whole.
+
+    * **Step 3.1: Centralize Prompts in LangSmith Hub**
+        * **Goal:** To establish a single source of truth for all system prompts, enabling versioning and rapid, code-free iteration.
+        * **Action:** Create the initial versions of the system's meta-prompts (for the evaluator and optimizer) directly in the **LangSmith Prompt Hub**.
+        * **Principle:** It is a strict requirement that **no prompts are hardcoded** or stored in local files within the codebase. All prompts **must** be pulled from the LangSmith Hub at runtime (e.g., using `langchain.hub.pull()`). This decouples prompt engineering from application logic.
+
+    * **Step 3.2: Define Graph State and Assemble Graph**
+        * **Implement:** In `main.py`, define the `StateGraph`'s state (e.g., current prompt, user batch, evaluation result, etc.).
+        * **Implement:** Add each function from the `/nodes/` directory as a node to the graph, ensuring they pull their respective prompts from the Hub.
+        * **Implement:** Define the edges connecting the nodes in the precise sequence from the diagram.
+
+    * **Step 3.3: Implement Conditional Edge (`determine_stop_node`)**
+        * **Implement:** Create the conditional logic that checks the stopping condition. This edge will either loop back to the `pick_users_node` or proceed to the `END` of the graph.
+
+    * **Step 3.4: Final End-to-End (E2E) Test**
+        * **Test:** Create a comprehensive E2E test script (`tests/test_e2e.py`) that runs the compiled LangGraph app for 2-3 full loops using a small, fixed dataset and real API calls.
+        * **Test:** It will assert that the application state is correctly updated at each step and that the process completes without errors.
+
+---
+
+## Stage 4: Finalization & Deliverables
 
     **Goal:** Prepare the project for submission.
 
-    * **Step 5.1: Finalize Documentation**
-        * Write a comprehensive `README.md` explaining the project, architecture, how to set it up (using `.env.example`), and how to run it using the Docker command.
-        * Include a section showing the final, optimized prompt and a sample table of the optimization cycles logged from LangSmith.
+    * **Step 4.1: Finalize `README.md`**
+        * Document the final, granular architecture, explaining the role of each node and the prompt management strategy via LangSmith Hub.
+        * Provide clear setup and execution instructions.
 
-    * **Step 5.2: Record Demo Video**
-        * Record a short (≤ 5 minutes) video walking through the project's architecture, code, and a live run of the one-command demo.
-
-    * **Step 5.3: Code Cleanup & Submission**
-        * Remove any debugging print statements, ensure all code is well-commented, and perform a final check of the repository before submission.
+    * **Step 4.2: Record Demo & Submit**
+        * Record a short video demonstrating the one-command execution and walking through the LangSmith traces to show the graph's execution and prompt lineage.
+        * Clean up the code, add final comments, and submit the repository.
