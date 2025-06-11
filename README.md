@@ -1,1 +1,1 @@
-# seikai-exam
+# sekai-exam

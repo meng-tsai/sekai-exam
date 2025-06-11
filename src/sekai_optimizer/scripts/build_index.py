@@ -69,7 +69,7 @@ if __name__ == "__main__":
         )
 
     PROJECT_ROOT = Path(__file__).resolve().parents[3]
-    DATA_DIR = PROJECT_ROOT / "src" / "seikai_optimizer" / "data"
+    DATA_DIR = PROJECT_ROOT / "src" / "sekai_optimizer" / "data"
 
     stories_file = DATA_DIR / "stories.json"
     index_file = DATA_DIR / "stories.index"

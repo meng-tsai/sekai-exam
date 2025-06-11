@@ -4,8 +4,8 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 # Assume the function will be in this module
-from seikai_optimizer.scripts import synthesize_data
-from seikai_optimizer.data.types import Dataset, Story, User
+from sekai_optimizer.scripts import synthesize_data
+from sekai_optimizer.data.types import Dataset, Story, User
 
 # Mock Pydantic models
 MOCK_STORIES = [

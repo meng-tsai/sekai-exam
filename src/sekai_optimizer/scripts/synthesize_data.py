@@ -5,7 +5,7 @@ from pathlib import Path
 import openai
 from dotenv import load_dotenv
 
-from seikai_optimizer.data.types import Dataset
+from sekai_optimizer.data.types import Dataset
 
 
 def _get_generation_prompt() -> str:
@@ -140,9 +140,9 @@ if __name__ == "__main__":
         )
 
     # Define file paths
-    # The script is in src/seikai_optimizer/scripts, so we go up three levels for the root
+    # The script is in src/sekai_optimizer/scripts, so we go up three levels for the root
     PROJECT_ROOT = Path(__file__).resolve().parents[3]
-    DATA_DIR = PROJECT_ROOT / "src" / "seikai_optimizer" / "data"
+    DATA_DIR = PROJECT_ROOT / "src" / "sekai_optimizer" / "data"
 
     stories_file = DATA_DIR / "stories.json"
     users_file = DATA_DIR / "users.json"

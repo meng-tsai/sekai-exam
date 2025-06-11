@@ -6,7 +6,7 @@ from pathlib import Path
 import faiss  # type: ignore
 
 # Assume the function will be in this module
-from seikai_optimizer.scripts import build_index
+from sekai_optimizer.scripts import build_index
 
 # Mock data that resembles stories.json
 MOCK_STORIES_DATA = [
