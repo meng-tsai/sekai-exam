@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seikai_optimizer"
+version = "0.0.1"
+authors = [
+    { name="Meng-Huan Tsai", email="stevenmtsai@gmail.com" },
+]
+description = "A self-optimizing agentic squad for recommendation prompts."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"] 
+
+[tool.setuptools.package-data]
+"seikai_optimizer" = ["py.typed"]
