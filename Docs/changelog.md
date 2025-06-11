@@ -217,3 +217,71 @@ Successfully demonstrated:
 ### Next Steps
 
 Stage 1 provides the complete foundation for implementing the actual optimization logic in Stage 2. All graph connections, state management, data flow, and optimization result tracking are validated and ready for real implementations. The system successfully returns the most optimized prompt with the highest score across all iterations.
+
+---
+
+# Stage 2
+
+## Stage 2: Incremental Node Implementation & Unit Testing
+
+### Overview
+
+Systematically replacing stub implementations with real, tested node logic using Test-Driven Development (TDD). Each node is implemented with comprehensive unit tests before integration.
+
+### Step 2.1: `pick_users_node` Implementation (Completed)
+
+Successfully transformed the stub user selection into a proper random sampling system following TDD methodology.
+
+#### Implementation Features
+
+- **Random Selection Algorithm**: Replaced sequential stub with `random.sample()` for proper random sampling without replacement
+- **Time-Based Seeding**: Uses `random.seed(time.time())` for completely random selection based on current time
+- **Edge Case Handling**: Robust handling of all boundary conditions:
+  - Empty user list returns empty batch
+  - Zero batch size returns empty batch
+  - Batch size >= total users returns all users
+  - Normal case performs proper random sampling
+- **State Contract Compliance**: Maintains exact I/O contract from Stage 1:
+  - **Reads**: `state['full_training_users']`, `state['config']['user_per_batch']`
+  - **Returns**: `{"current_user_batch": List[Dict]}`
+
+#### Testing Strategy
+
+- **Comprehensive Unit Tests**: 8 test cases covering all scenarios:
+  - Normal random selection with proper batch sizes
+  - Edge cases (empty lists, zero batches, oversized requests)
+  - Randomness verification across multiple calls
+  - Actual data format compliance testing
+- **TDD Process**: Tests written first, implementation built to pass tests
+- **Integration Validation**: E2E tests confirm no workflow disruption
+
+#### Technical Details
+
+- **Algorithm**: `random.sample(population, k)` for sampling without replacement
+- **Logging**: Maintained detailed logging for monitoring and debugging
+- **Performance**: O(k) time complexity where k is batch size
+- **Memory**: Creates new list copy, no modification of original state
+
+#### Validation Results
+
+- **Unit Tests**: 8/8 passed ✅
+- **E2E Tests**: 2/2 passed ✅
+- **Randomness Verified**: Multiple calls produce different selections ✅
+- **Data Integration**: Works with actual 50-user dataset ✅
+
+#### Files Modified
+
+- `src/sekai_optimizer/nodes/pick_users.py` - Replaced stub with random selection implementation
+- **Files Added**:
+  - `tests/nodes/test_pick_users.py` - Comprehensive unit test suite
+
+#### Impact on System
+
+- **No Breaking Changes**: Maintained exact state interface for seamless integration
+- **Improved Generalization**: Random user selection prevents overfitting to specific user ordering
+- **Enhanced Testing**: Established pattern for node-level TDD testing
+- **Ready for Next Steps**: Provides foundation for Stage 2 Step 2.2 (`simulate_tags_node`)
+
+### Next Steps
+
+Continue with Stage 2 Step 2.2: Implementation of `simulate_tags_node` using the same TDD approach, building on the foundation established with the user selection system.
