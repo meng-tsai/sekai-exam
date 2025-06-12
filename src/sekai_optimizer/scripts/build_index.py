@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from pathlib import Path
 from typing import List, Dict, Any
@@ -7,6 +8,12 @@ import faiss  # type: ignore
 import numpy as np
 import openai
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def build_and_save_index(
@@ -29,7 +36,7 @@ def build_and_save_index(
         f"{story['title']}: {story.get('intro', '')}" for story in stories_data
     ]
 
-    print(f"Embedding {len(texts_to_embed)} stories using OpenAI...")
+    logger.info(f"Embedding {len(texts_to_embed)} stories using OpenAI...")
 
     # Get embeddings from OpenAI
     response = client.embeddings.create(
@@ -47,17 +54,17 @@ def build_and_save_index(
     ids = np.arange(len(stories_data))
     index.add_with_ids(embeddings, ids)
 
-    print(f"Index built successfully with {index.ntotal} vectors.")
+    logger.info(f"Index built successfully with {index.ntotal} vectors.")
 
     # Save the index and mapping
     index_filepath.parent.mkdir(parents=True, exist_ok=True)
     faiss.write_index(index, str(index_filepath))
-    print(f"FAISS index saved to {index_filepath}")
+    logger.info(f"FAISS index saved to {index_filepath}")
 
     id_mapping = {str(i): story["id"] for i, story in enumerate(stories_data)}
     with open(mapping_filepath, "w") as f:
         json.dump(id_mapping, f)
-    print(f"ID mapping saved to {mapping_filepath}")
+    logger.info(f"ID mapping saved to {mapping_filepath}")
 
 
 if __name__ == "__main__":
@@ -86,4 +93,4 @@ if __name__ == "__main__":
     openai_client = openai.OpenAI()
 
     build_and_save_index(openai_client, stories, index_file, mapping_file)
-    print("\nIndex building complete.")
+    logger.info("Index building complete.")

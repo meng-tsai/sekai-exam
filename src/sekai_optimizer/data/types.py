@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 
 
@@ -24,3 +24,15 @@ class Dataset(BaseModel):
 
     stories: List[Story]
     users: List[User]
+
+
+class UsersResponse(BaseModel):
+    """Response schema for user profile generation via LangSmith prompts."""
+
+    users: List[User] = Field(description="List of generated user profiles")
+
+
+class StoriesResponse(BaseModel):
+    """Response schema for story concept generation via LangSmith prompts."""
+
+    stories: List[Story] = Field(description="List of generated story concepts")
