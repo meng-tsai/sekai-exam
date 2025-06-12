@@ -33,7 +33,8 @@ def build_and_save_index(
         mapping_filepath: Path to save the JSON mapping from index position to story ID.
     """
     texts_to_embed = [
-        f"{story['title']}: {story.get('intro', '')}" for story in stories_data
+        f"{story['title']}: {story.get('intro', '')}; tags: {story.get('tags', [])}"
+        for story in stories_data
     ]
 
     logger.info(f"Embedding {len(texts_to_embed)} stories using OpenAI...")
