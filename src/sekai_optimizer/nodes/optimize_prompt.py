@@ -3,7 +3,8 @@ Optimize prompt node implementation.
 """
 
 import logging
-from typing import Dict, Any, List
+import json
+from typing import Dict, Any
 
 from ..data.state import OptimizationState
 
@@ -22,8 +23,12 @@ def optimize_prompt_node(state: OptimizationState) -> Dict[str, Any]:
     logger.info("=== OPTIMIZE PROMPT NODE ===")
     logger.info(f"Current iteration: {state['iteration_count']}")
     logger.info(f"Current strategy prompt: {state['current_strategy_prompt'][:100]}...")
-    logger.info(f"Evaluation result: {state['evaluation_result']}")
-    logger.info(f"Historical evaluations: {len(state['evaluation_history'])}")
+    logger.info(
+        "Evaluation result:\n%s", json.dumps(state["evaluation_result"], indent=2)
+    )
+    logger.info(
+        "Historical evaluations: %s", json.dumps(state["evaluation_history"], indent=2)
+    )
 
     # Get current score
     current_score = state["evaluation_result"].get("average_p10", 0.0)

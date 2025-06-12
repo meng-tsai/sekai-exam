@@ -67,11 +67,6 @@ def main() -> None:
         logger.info(f"📝 Optimal Strategy Prompt:")
         logger.info(f"   {final_state['best_strategy_prompt']}")
 
-        if final_state["best_evaluation"]:
-            logger.info(f"📊 Best Evaluation Details:")
-            for key, value in final_state["best_evaluation"].items():
-                logger.info(f"   {key}: {value}")
-
         logger.info("=" * 60)
         logger.info("SEKAI OPTIMIZER COMPLETED SUCCESSFULLY")
         logger.info("=" * 60)
