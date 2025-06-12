@@ -9,4 +9,4 @@
 - **Configuration**: Provided a `.env.example` template to define necessary environment variables like API keys and operational parameters.
 - **User-Requested Changes**:
   - Removed the `sentence-transformers` library from `requirements.txt`.
-  - Renamed the `VALIDATION_INTERVAL` environment variable to `VALIDATION_INTERVAL_MINUTE` in `.env.example` for clarity.
+  - Renamed the `VALIDATION_INTERVAL` environment variable to `MAX_OPTIMIZATION_MINUTE` in `.env.example` for clarity.

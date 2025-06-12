@@ -95,3 +95,7 @@ venv.bak/
 
 # Docker
 docker-compose.override.yml 
+
+# Data
+src/sekai_optimizer/data/*.json
+src/sekai_optimizer/data/*.index
