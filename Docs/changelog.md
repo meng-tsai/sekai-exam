@@ -522,6 +522,98 @@ To complete deployment:
 2. **Configure Environment**: Ensure `OPENAI_API_KEY` and `LANGSMITH_API_KEY` are set
 3. **Data Preparation**: Run data synthesis and index building if not already completed
 
+### Step 2.4: `generate_groundtruths_node` Implementation (Completed)
+
+Successfully implemented gold-standard ground truth generation using RunnableParallel for optimal performance, following TDD methodology.
+
+#### Implementation Features
+
+- **RunnableParallel Architecture**: Replaced sequential processing with concurrent user processing:
+  - Creates individual `RunnableLambda` functions for each user
+  - Executes all ground truth generations simultaneously using `RunnableParallel`
+  - Follows the same efficient pattern as `recommend_stories_node`
+  - Significant performance improvement over sequential LLM calls
+- **LangSmith Integration**: Full integration with `generate_groundtruths:latest` prompt:
+  - Pulls prompts with `include_model=True` for complete runnable chains
+  - Uses structured system and human prompts for gold-standard generation
+  - Type-safe JSON parsing with Pydantic validation
+- **Complete Story Analysis**: Sends entire story dataset (~100 stories) to LLM:
+  - No RAG or FAISS retrieval - pure LLM reasoning with complete information
+  - Uses full user profiles (not simulated tags) for authentic ground truth generation
+  - Individual processing per user for personalized gold-standard recommendations
+- **Robust Error Handling**: Hard failure strategy as specified:
+  - LangSmith connection failures propagate to graph level
+  - LLM call failures halt execution (Option C implementation)
+  - Comprehensive logging for debugging and monitoring
+- **Data Validation**: Ensures exactly 10 valid story IDs per user:
+  - Validates story ID existence in dataset
+  - Automatic padding with additional stories if needed
+  - String user ID conversion for system consistency
+
+#### LangSmith Prompt Created
+
+**Prompt Name**: `generate_groundtruths:latest`
+
+- **System Prompt**: Expert story recommendation system for gold-standard generation
+- **Analysis Framework**: Considers genres, themes, character archetypes, narrative structures, power dynamics, and fandoms
+- **Output Format**: Structured JSON with exactly 10 story IDs ordered by relevance
+- **Quality Focus**: Prioritizes perfect alignment with user preferences over diversity
+
+#### Testing Strategy
+
+- **Comprehensive TDD Process**: Complete Red-Green-Refactor methodology:
+  - **Unit Tests**: 8 test scenarios covering all use cases and edge conditions
+  - **Integration Tests**: Real data validation with selective mocking
+  - **Helper Function Testing**: Individual `_generate_ground_truth_for_user` validation
+- **Test Coverage Areas**:
+  - Normal RunnableParallel ground truth generation flow
+  - Invalid story ID validation and padding mechanisms
+  - LangSmith connection failure handling (hard fail)
+  - LLM call failure handling (hard fail)
+  - Empty user batch edge case handling
+  - Pydantic model validation and type safety
+  - Story formatting verification for LLM prompts
+- **Mock Strategy**: Proper isolation with RunnableParallel mocking:
+  - LangSmith client mocking for deterministic testing
+  - RecommendationService mocking for data access
+  - Environment variable isolation for test consistency
+
+#### Performance Characteristics
+
+- **Concurrent Processing**: Multiple users processed simultaneously vs sequential
+- **Improved Throughput**: Better resource utilization and faster execution
+- **Token Efficiency**: Single story dataset formatting per batch
+- **Scalable Architecture**: Ready for larger user batches in production
+- **Memory Usage**: Reuses RecommendationService singleton for data access
+
+#### Validation Results
+
+- **Unit Tests**: 8/8 passed ✅
+- **E2E Tests**: 1/1 passed ✅ (2m 52s execution time)
+- **Integration Validation**: No workflow disruption, maintains exact state interface
+- **Performance**: Confirmed RunnableParallel concurrent execution
+- **Type Safety**: Pydantic validation prevents runtime errors
+
+#### State Contract Compliance
+
+- **Reads**: `state['current_user_batch']` with full user profiles
+- **Returns**: `{"batch_ground_truths": Dict[str, List[int]]}`
+- **Format**: String user IDs mapped to exactly 10 story IDs per user
+- **Error Handling**: Hard failures propagate to graph level as requested
+
+#### Files Added
+
+- `src/sekai_optimizer/nodes/generate_groundtruths.py` - Complete RunnableParallel implementation
+- `tests/nodes/test_generate_groundtruths.py` - Comprehensive TDD test suite with RunnableParallel testing
+
+#### Impact on System
+
+- **Production-Ready Performance**: RunnableParallel enables efficient concurrent processing
+- **Gold-Standard Quality**: Real LLM analysis with complete story dataset replaces mock data
+- **Evaluation Ready**: Provides high-quality ground truth for accurate evaluation metrics
+- **Scalable Operations**: Concurrent architecture ready for production user volumes
+- **Robust Reliability**: Comprehensive error handling ensures system stability
+
 ### Next Steps
 
-Continue with Stage 2 Step 2.4: Implementation of `generate_groundtruths_node` using the same TDD approach, creating high-quality ground truth recommendations for evaluation.
+Continue with Stage 2 Step 2.5: Implementation of `evaluate_node` using the same TDD approach, creating comprehensive evaluation and feedback synthesis capabilities.
