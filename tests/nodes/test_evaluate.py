@@ -530,18 +530,24 @@ class TestEvaluateNode:
 class TestEvaluationService:
     """Test suite for EvaluationService class."""
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.mock_stories = {
-            101: {"id": 101, "title": "Story 101", "intro": "Epic adventure story"},
-            102: {"id": 102, "title": "Story 102", "intro": "Romance story"},
-            103: {"id": 103, "title": "Story 103", "intro": "Mystery story"},
-        }
+    @pytest.fixture
+    def mocked_evaluation_service(self):
+        """Provides a fully mocked EvaluationService instance."""
+        with patch("sekai_optimizer.nodes.evaluate.openai.OpenAI") as mock_openai_class:
+            # Configure the mock class to return a specific mock instance
+            mock_instance = MagicMock()
+            mock_openai_class.return_value = mock_instance
 
-    def test_calculate_precision_at_10(self):
+            # Reset the singleton and create a new service for the test
+            if EvaluationService._instance:
+                EvaluationService._instance = None
+            service = EvaluationService.get_instance()
+
+            yield service
+
+    def test_calculate_precision_at_10(self, mocked_evaluation_service):
         """Test P@10 calculation."""
-        service = EvaluationService()
-
+        service = mocked_evaluation_service
         # Test perfect overlap
         recommended = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         ground_truth = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -559,9 +565,9 @@ class TestEvaluationService:
         ground_truth = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
         assert service.calculate_precision_at_10(recommended, ground_truth) == 0.0
 
-    def test_format_story_for_embedding(self):
+    def test_format_story_for_embedding(self, mocked_evaluation_service):
         """Test story formatting for embedding."""
-        service = EvaluationService()
+        service = mocked_evaluation_service
 
         story = {"title": "Test Story", "intro": "Test intro"}
         formatted = service._format_story_for_embedding(story)
@@ -572,20 +578,16 @@ class TestEvaluationService:
         formatted = service._format_story_for_embedding(story)
         assert formatted == "Test Story: "
 
-    @patch("sekai_optimizer.nodes.evaluate.openai.OpenAI")
-    def test_embed_story_set(self, mock_openai_class):
+    def test_embed_story_set(self, mocked_evaluation_service):
         """Test story set embedding."""
+        service = mocked_evaluation_service
         # Setup mock OpenAI client
-        mock_client = Mock()
-        mock_openai_class.return_value = mock_client
+        mock_client = service.openai_client
 
         mock_response = Mock()
         mock_response.data = [Mock()]
         mock_response.data[0].embedding = [0.1, 0.2, 0.3]
         mock_client.embeddings.create.return_value = mock_response
-
-        service = EvaluationService()
-        service.openai_client = mock_client
 
         stories = [
             {"title": "Story 1", "intro": "Intro 1"},
@@ -601,21 +603,16 @@ class TestEvaluationService:
         call_args = mock_client.embeddings.create.call_args[1]
         assert "Story 1: Intro 1 | Story 2: Intro 2" in call_args["input"]
 
-    @patch("sekai_optimizer.nodes.evaluate.openai.OpenAI")
-    def test_calculate_semantic_similarity(self, mock_openai_class):
+    def test_calculate_semantic_similarity(self, mocked_evaluation_service):
         """Test semantic similarity calculation."""
-        # Setup mock OpenAI client
-        mock_client = Mock()
-        mock_openai_class.return_value = mock_client
+        service = mocked_evaluation_service
+        mock_client = service.openai_client
 
         # Mock embedding responses for identical story sets
         mock_response = Mock()
         mock_response.data = [Mock()]
         mock_response.data[0].embedding = [1.0, 0.0, 0.0]  # Unit vector
         mock_client.embeddings.create.return_value = mock_response
-
-        service = EvaluationService()
-        service.openai_client = mock_client
 
         stories1 = [{"title": "Story 1", "intro": "Intro 1"}]
         stories2 = [{"title": "Story 1", "intro": "Intro 1"}]
@@ -625,17 +622,11 @@ class TestEvaluationService:
         # Should be 1.0 for identical embeddings
         assert similarity == 1.0
 
-    @patch("sekai_optimizer.nodes.evaluate.openai.OpenAI")
-    def test_semantic_similarity_failure(self, mock_openai_class):
+    def test_semantic_similarity_failure(self, mocked_evaluation_service):
         """Test semantic similarity calculation failure handling."""
-        # Setup mock OpenAI client that fails
-        mock_client = Mock()
-        mock_openai_class.return_value = mock_client
-
+        service = mocked_evaluation_service
+        mock_client = service.openai_client
         mock_client.embeddings.create.side_effect = Exception("OpenAI API failed")
-
-        service = EvaluationService()
-        service.openai_client = mock_client
 
         stories1 = [{"title": "Story 1", "intro": "Intro 1"}]
         stories2 = [{"title": "Story 2", "intro": "Intro 2"}]

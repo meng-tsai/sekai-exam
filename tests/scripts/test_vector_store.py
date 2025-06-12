@@ -71,7 +71,10 @@ def test_build_and_save_index_with_openai(mock_openai_client, tmp_path):
     )
 
     # 1. Assert OpenAI embedding model was called with the correct texts
-    expected_texts = [f"{s['title']}: {s.get('intro', '')}" for s in MOCK_STORIES_DATA]
+    expected_texts = [
+        f"{s['title']}: {s.get('intro', '')}; tags: {s.get('tags', [])}"
+        for s in MOCK_STORIES_DATA
+    ]
     mock_openai_client.embeddings.create.assert_called_once_with(
         input=expected_texts, model="text-embedding-3-small"
     )
