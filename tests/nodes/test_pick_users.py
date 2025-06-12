@@ -4,13 +4,10 @@ Unit tests for pick_users_node implementation.
 Following TDD approach for Stage 2 Step 2.1.
 """
 
-import random
 import time
-from unittest.mock import patch
-import pytest
 
-from src.sekai_optimizer.nodes.pick_users import pick_users_node
-from src.sekai_optimizer.data.state import OptimizationState
+from sekai_optimizer.nodes.pick_users import pick_users_node
+from sekai_optimizer.data.state import OptimizationState
 
 
 class TestPickUsersNode:

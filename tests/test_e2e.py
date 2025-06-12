@@ -13,8 +13,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.sekai_optimizer.workflows.graph_builder import build_optimization_graph
-from src.sekai_optimizer.workflows.state_initialization import (
+from sekai_optimizer.workflows.graph_builder import build_optimization_graph
+from sekai_optimizer.workflows.state_initialization import (
     initialize_optimization_state,
 )
 
@@ -127,7 +127,7 @@ class TestE2EWorkflow:
 
         # Mock the data loading function to return our test data
         with patch(
-            "src.sekai_optimizer.workflows.state_initialization.load_training_data"
+            "sekai_optimizer.workflows.state_initialization.load_training_data"
         ) as mock_load_data:
             # Return our mock data
             mock_load_data.return_value = (test_users, test_stories)
@@ -202,7 +202,7 @@ class TestE2EWorkflow:
 
         # Mock the data loading function to return our test data
         with patch(
-            "src.sekai_optimizer.workflows.state_initialization.load_training_data"
+            "sekai_optimizer.workflows.state_initialization.load_training_data"
         ) as mock_load_data:
             # Return our mock data
             mock_load_data.return_value = (test_users, test_stories)

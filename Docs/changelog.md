@@ -135,7 +135,7 @@ Created stub implementations for all 6 core nodes with comprehensive logging:
 #### Execution Infrastructure
 
 - **Main Entry Point**: `src/sekai_optimizer/main.py` provides complete workflow execution with **optimal results display**
-- **Docker Integration**: Updated Dockerfile for immediate execution via `python -m src.sekai_optimizer.main`
+- **Docker Integration**: Updated Dockerfile for immediate execution via `python -m sekai_optimizer.main`
 - **Run Script**: Added `run.sh` for one-command Docker deployment
 
 #### Testing Framework
@@ -282,6 +282,126 @@ Successfully transformed the stub user selection into a proper random sampling s
 - **Enhanced Testing**: Established pattern for node-level TDD testing
 - **Ready for Next Steps**: Provides foundation for Stage 2 Step 2.2 (`simulate_tags_node`)
 
+### Step 2.2: `simulate_tags_node` Implementation (Completed)
+
+Successfully implemented intelligent user tag simulation using LangSmith integration and LLM-powered inference, following TDD methodology.
+
+#### Implementation Features
+
+- **LangSmith Integration**: Full integration with LangSmith Hub for prompt management:
+  - Pulls prompts with format `"your_org/simulate_tags:latest"` including model configuration
+  - Uses `langsmith_client.pull_prompt()` with `include_model=True` for complete runnable chains
+  - Supports versioned prompt management for production deployment
+- **Batch Processing**: Efficient single LLM call for multiple users:
+  - Processes entire user batch in one API request to minimize latency
+  - Constructs structured input with user profiles and IDs
+  - Returns properly formatted JSON mapping user IDs to tag lists
+- **Pydantic Validation**: Type-safe JSON parsing with comprehensive validation:
+  - `UserTagsResponse` model with `Dict[str, List[str]]` structure
+  - `JsonOutputParser(pydantic_object=UserTagsResponse)` for robust deserialization
+  - Automatic validation of LLM response format
+- **Error Handling**: Robust fallback mechanisms:
+  - Graceful degradation on LangSmith connection failures
+  - Per-user error handling for partial batch failures
+  - Fallback to empty tag lists `[]` rather than system crashes
+  - Comprehensive logging for debugging and monitoring
+- **State Contract Compliance**: Maintains exact I/O contract from Stage 1:
+  - **Reads**: `state['current_user_batch']` with user profiles
+  - **Returns**: `{"batch_simulated_tags": Dict[str, List[str]]}`
+  - String user ID conversion for consistency across system
+
+#### LLM Tag Generation
+
+- **Intelligent Simulation**: Uses LLM reasoning to generate realistic user tag preferences:
+  - Analyzes user profile text to infer story preferences
+  - Generates 5-8 tags per user in lowercase-with-hyphens format
+  - Creates tags beyond seed examples based on user personality and interests
+  - Produces diverse, contextually relevant tag sets per user
+- **Tag Format Compliance**: Follows system specifications:
+  - Lowercase with hyphens (e.g., `'epic-fantasy'`, `'slice-of-life'`)
+  - 5-8 tags per user for optimal recommendation diversity
+  - Custom tag generation beyond predefined seed tags
+
+#### Testing Strategy
+
+- **TDD Process**: Complete Red-Green-Refactor cycle:
+  - **Red Phase**: Tests written first, confirmed failures with stub implementation
+  - **Green Phase**: Real implementation built to pass all tests
+  - **Refactor Phase**: Integration testing and optimization
+- **Comprehensive Unit Tests**: 4 test scenarios covering all cases:
+  - Successful LLM integration with proper tag generation
+  - LangSmith connection failure with graceful fallback
+  - Empty user batch edge case handling
+  - Pydantic model validation testing
+- **Mock Strategy**: Proper isolation of external dependencies:
+  - LangSmith client mocking for deterministic testing
+  - Environment variable mocking for test isolation
+  - LLM response simulation for consistent test results
+- **Integration Validation**: Real system testing:
+  - Local execution with actual OpenAI API calls
+  - Verified diverse tag generation per user profile
+  - Confirmed batch processing efficiency
+
+#### Technical Implementation
+
+- **Dependencies Updated**: Fixed LangSmith version compatibility:
+  - Updated `requirements.txt`: `langsmith==0.2.22` → `langsmith==0.3.45`
+  - Resolved Docker build issues with package versions
+  - Maintained compatibility with existing LangChain ecosystem
+- **Chain Construction**: Proper LangChain pipeline:
+  - `tag_simulator_runnable | json_parser` chain pattern
+  - Automatic model configuration from LangSmith prompt
+  - Structured input/output handling with type safety
+- **Logging Integration**: Comprehensive monitoring:
+  - Batch processing progress tracking
+  - Individual user tag generation logging
+  - Error reporting with full stack traces
+  - Performance metrics for optimization
+
+#### Validation Results
+
+- **Unit Tests**: 4/4 passed ✅
+- **Local Integration**: Real LLM calls producing diverse tags ✅
+- **Error Handling**: Graceful fallback on API failures ✅
+- **Performance**: Efficient batch processing confirmed ✅
+- **Format Compliance**: Proper hyphenated tag format ✅
+
+#### Example Output
+
+Real LLM-generated tags demonstrating intelligent user analysis:
+
+```python
+{
+  "1": ["choice-driven", "high-agency-protagonist", "tournament-arc", "power-dynamics", "underdog-to-hero"],
+  "2": ["self-insert-narrator", "reluctant-guardian", "disguised-royalty", "academy-setting", "supernatural-romance"]
+}
+```
+
+#### Files Modified
+
+- `src/sekai_optimizer/nodes/simulate_tags.py` - Replaced stub with LangSmith-powered implementation
+- `requirements.txt` - Updated LangSmith version for compatibility
+
+#### Files Added
+
+- `tests/nodes/test_simulate_tags.py` - Comprehensive unit test suite with TDD approach
+
+#### Impact on System
+
+- **Enhanced Intelligence**: Real user preference simulation replaces hardcoded mock data
+- **Production Ready**: LangSmith integration enables prompt versioning and management
+- **Scalable Architecture**: Batch processing optimizes API usage and performance
+- **Robust Operations**: Comprehensive error handling ensures system stability
+- **Type Safety**: Pydantic validation prevents runtime errors from malformed LLM outputs
+
+#### Next Steps Requirements
+
+To complete deployment:
+
+1. **Create LangSmith Prompt**: Set up `simulate_tags` prompt in LangSmith Hub with proper user/org prefix
+2. **Configure Environment**: Set `LANGSMITH_API_KEY` for production deployment
+3. **Docker Rebuild**: Rebuild container with updated dependencies and implementation
+
 ### Next Steps
 
-Continue with Stage 2 Step 2.2: Implementation of `simulate_tags_node` using the same TDD approach, building on the foundation established with the user selection system.
+Continue with Stage 2 Step 2.3: Implementation of `recommend_stories_node` using the same TDD approach, leveraging the generated user tags for intelligent story recommendations.
