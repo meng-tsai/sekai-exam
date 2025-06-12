@@ -31,7 +31,7 @@ def load_training_data() -> tuple[list[Dict[str, Any]], list[Dict[str, Any]]]:
 
     with open(users_file, "r") as f:
         users = json.load(f)
-    logger.info(f"Loaded {len(users)} training users")
+    logger.debug(f"Loaded {len(users)} training users")
 
     # Load stories
     stories_file = data_dir / "stories.json"
@@ -41,7 +41,7 @@ def load_training_data() -> tuple[list[Dict[str, Any]], list[Dict[str, Any]]]:
 
     with open(stories_file, "r") as f:
         stories = json.load(f)
-    logger.info(f"Loaded {len(stories)} stories")
+    logger.debug(f"Loaded {len(stories)} stories")
 
     return users, stories
 
@@ -63,9 +63,9 @@ def create_initial_config() -> Dict[str, Any]:
         ),
     }
 
-    logger.info("Configuration loaded:")
+    logger.debug("Configuration loaded:")
     for key, value in config.items():
-        logger.info(f"  {key}: {value}")
+        logger.debug(f"  {key}: {value}")
 
     return config
 
@@ -131,9 +131,9 @@ def initialize_optimization_state() -> OptimizationState:
         "faiss_index_path": faiss_index_path,
     }
 
-    logger.info("Optimization state initialized successfully")
-    logger.info(f"Training users: {len(users)}")
-    logger.info(f"Available stories: {len(stories)}")
-    logger.info(f"Initial strategy prompt: {config['init_strategy_prompt'][:50]}...")
+    logger.debug("Optimization state initialized successfully")
+    logger.debug(f"Training users: {len(users)}")
+    logger.debug(f"Available stories: {len(stories)}")
+    logger.debug(f"Initial strategy prompt: {config['init_strategy_prompt'][:50]}...")
 
     return initial_state

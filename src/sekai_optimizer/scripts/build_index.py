@@ -37,7 +37,7 @@ def build_and_save_index(
         for story in stories_data
     ]
 
-    logger.info(f"Embedding {len(texts_to_embed)} stories using OpenAI...")
+    logger.debug(f"Embedding {len(texts_to_embed)} stories using OpenAI...")
 
     # Get embeddings from OpenAI
     response = client.embeddings.create(

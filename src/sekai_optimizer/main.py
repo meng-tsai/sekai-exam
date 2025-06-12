@@ -19,6 +19,9 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
+# Silence overly verbose library loggers
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,33 +37,35 @@ def main() -> None:
     env_path = Path.cwd() / ".env"
     if env_path.exists():
         load_dotenv(env_path)
-        logger.info(f"Loaded environment from: {env_path}")
+        logger.debug(f"Loaded environment from: {env_path}")
     else:
         logger.warning(f"No .env file found at: {env_path}")
 
     try:
         # Step 1: Initialize state
-        logger.info("Step 1: Initializing optimization state...")
+        logger.debug("Step 1: Initializing optimization state...")
         initial_state = initialize_optimization_state()
 
         # Step 2: Build graph
-        logger.info("Step 2: Building optimization workflow graph...")
+        logger.debug("Step 2: Building optimization workflow graph...")
         graph = build_optimization_graph()
 
         # Step 3: Execute workflow
-        logger.info("Step 3: Executing optimization workflow...")
+        logger.debug("Step 3: Executing optimization workflow...")
         logger.info("=" * 40)
         logger.info("WORKFLOW EXECUTION STARTED")
         logger.info("=" * 40)
 
-        final_state = graph.invoke(initial_state)
+        final_state = graph.invoke(
+            initial_state, recursion_limit=int(os.environ.get("MAX_ITERATIONS", 3)) * 10
+        )
 
         logger.info("=" * 40)
         logger.info("WORKFLOW EXECUTION COMPLETED")
         logger.info("=" * 40)
 
         # Step 4: Display optimal results
-        logger.info("Step 4: Optimization Results Summary")
+        logger.debug("Step 4: Optimization Results Summary")
         logger.info("🏆 FINAL OPTIMIZATION RESULTS 🏆")
         logger.info(f"✅ Iterations Completed: {final_state['iteration_count']}")
         logger.info(f"🎯 Best Score Achieved: {final_state['best_score']}")

@@ -181,7 +181,7 @@ class EvaluationService:
             if user_runnables:
                 parallel_runnable = RunnableParallel(user_runnables)
                 results = parallel_runnable.invoke({})
-                logger.info(f"Evaluated {len(results)} users in parallel")
+                logger.debug(f"Evaluated {len(results)} users in parallel")
                 return results
             else:
                 logger.warning("No valid users found for evaluation")
@@ -264,7 +264,7 @@ class EvaluationService:
             synthesized_feedback = feedback_result.get(
                 "feedback", "No feedback generated"
             )
-            logger.info(f"Generated synthesized feedback.")
+            logger.debug(f"Generated synthesized feedback.")
             return synthesized_feedback
 
         except Exception as e:
@@ -282,7 +282,7 @@ def evaluate_node(state: OptimizationState) -> Dict[str, Any]:
     - Updates State with: { "evaluation_result": Dict }
     """
     logger.info("=== EVALUATE NODE ===")
-    logger.info(f"Evaluating batch of {len(state['current_user_batch'])} users")
+    logger.debug(f"Evaluating batch of {len(state['current_user_batch'])} users")
 
     users = state["current_user_batch"]
     batch_recommendations = state["batch_recommendations"]

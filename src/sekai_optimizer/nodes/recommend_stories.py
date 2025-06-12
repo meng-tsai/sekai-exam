@@ -61,7 +61,7 @@ class RecommendationService:
                 raise FileNotFoundError(f"FAISS index not found at {index_path}")
 
             self.faiss_index = faiss.read_index(str(index_path))
-            logger.info(f"Loaded FAISS index with {self.faiss_index.ntotal} vectors")
+            logger.debug(f"Loaded FAISS index with {self.faiss_index.ntotal} vectors")
 
             # Load ID mapping
             mapping_path = data_dir / "stories_mapping.json"
@@ -70,7 +70,7 @@ class RecommendationService:
 
             with open(mapping_path, "r") as f:
                 self.id_mapping = json.load(f)
-            logger.info(f"Loaded ID mapping with {len(self.id_mapping)} entries")
+            logger.debug(f"Loaded ID mapping with {len(self.id_mapping)} entries")
 
             # Load story data
             stories_path = data_dir / "stories.json"
@@ -82,11 +82,11 @@ class RecommendationService:
 
             # Convert to dict for O(1) lookup
             self.story_data = {story["id"]: story for story in stories_list}
-            logger.info(f"Loaded {len(self.story_data)} stories")
+            logger.debug(f"Loaded {len(self.story_data)} stories")
 
             # Initialize OpenAI client for embeddings
             self.openai_client = openai.OpenAI()
-            logger.info("Initialized OpenAI client for embeddings")
+            logger.debug("Initialized OpenAI client for embeddings")
 
         except Exception as e:
             logger.error(f"Failed to load recommendation service data: {e}")
@@ -127,7 +127,7 @@ class RecommendationService:
                     story_id = self.id_mapping[str(idx)]
                     story_ids.append(story_id)
 
-            logger.info(
+            logger.debug(
                 f"FAISS retrieved {len(story_ids)} candidates for tags: {user_tags}"
             )
             return story_ids
@@ -197,7 +197,7 @@ class RecommendationService:
             # Ensure exactly 10 recommendations
             final_recommendations = valid_recommendations[:10]
 
-            logger.info(
+            logger.debug(
                 f"LLM re-ranking returned {len(final_recommendations)} recommendations for tags: {user_tags}"
             )
             return final_recommendations
@@ -243,7 +243,7 @@ class RecommendationService:
             parallel_runnable = RunnableParallel(user_runnables)
             results = parallel_runnable.invoke({})
 
-            logger.info(f"Generated recommendations for {len(results)} users")
+            logger.debug(f"Generated recommendations for {len(results)} users")
             return results
 
         except Exception as e:
@@ -264,8 +264,8 @@ def recommend_stories_node(state: OptimizationState) -> Dict[str, Any]:
     batch_tags = state["batch_simulated_tags"]
     strategy_prompt = state["current_strategy_prompt"]
 
-    logger.info(f"Processing recommendations for {len(batch_tags)} users")
-    logger.info(f"Strategy prompt: {strategy_prompt}")
+    logger.debug(f"Processing recommendations for {len(batch_tags)} users")
+    logger.debug(f"Strategy prompt: {strategy_prompt}")
 
     try:
         # Get recommendation service instance
@@ -276,9 +276,9 @@ def recommend_stories_node(state: OptimizationState) -> Dict[str, Any]:
 
         # Log results
         for user_id, recommendations in batch_recommendations.items():
-            logger.info(f"User {user_id}: recommended {recommendations}")
+            logger.debug(f"User {user_id}: recommended {recommendations}")
 
-        logger.info(
+        logger.debug(
             f"Completed story recommendations for {len(batch_recommendations)} users"
         )
 

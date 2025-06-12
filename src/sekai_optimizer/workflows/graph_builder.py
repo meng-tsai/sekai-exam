@@ -4,6 +4,7 @@ Graph builder for the Sekai Optimizer workflow.
 
 import logging
 import time
+import json
 from typing import Literal
 
 from langgraph.graph import StateGraph
@@ -29,14 +30,14 @@ def determine_stop(state: OptimizationState) -> Literal["continue", "end"]:
     2. Max time exceeded
     """
     logger.info("=== DETERMINE STOP ===")
-    logger.info(f"Current iteration: {state['iteration_count']}")
-    logger.info(f"Max iterations: {state['config']['max_iterations']}")
+    logger.debug(f"Current iteration: {state['iteration_count']}")
+    logger.debug(f"Max iterations: {state['config']['max_iterations']}")
 
     elapsed_minutes = (time.time() - state["start_time"]) / 60.0
     max_minutes = state["config"]["max_optimization_minute"]
 
-    logger.info(f"Elapsed time: {elapsed_minutes:.2f} minutes")
-    logger.info(f"Max time: {max_minutes} minutes")
+    logger.debug(f"Elapsed time: {elapsed_minutes:.2f} minutes")
+    logger.debug(f"Max time: {max_minutes} minutes")
 
     # Check stopping conditions
     if state["iteration_count"] >= state["config"]["max_iterations"]:
@@ -49,7 +50,7 @@ def determine_stop(state: OptimizationState) -> Literal["continue", "end"]:
         _log_final_results(state)
         return "end"
 
-    logger.info("CONTINUING: Within iteration and time limits")
+    logger.debug("CONTINUING: Within iteration and time limits")
     return "continue"
 
 
@@ -61,7 +62,9 @@ def _log_final_results(state: OptimizationState) -> None:
     logger.info(f"Total iterations completed: {state['iteration_count']}")
     logger.info(f"Best score achieved: {state['best_score']}")
     logger.info(f"Best strategy prompt: {state['best_strategy_prompt']}")
-    logger.info(f"Best evaluation details: {state['best_evaluation']}")
+    logger.debug(
+        f"Best evaluation details: {json.dumps(state['best_evaluation'], indent=4)}"
+    )
     logger.info("=" * 60)
 
 
@@ -72,7 +75,7 @@ def build_optimization_graph() -> CompiledGraph:
     Returns:
         Compiled LangGraph ready for execution
     """
-    logger.info("Building optimization workflow graph...")
+    logger.debug("Building optimization workflow graph...")
 
     # Create the graph
     workflow = StateGraph(OptimizationState)
@@ -108,5 +111,5 @@ def build_optimization_graph() -> CompiledGraph:
     # Compile the graph
     graph = workflow.compile()
 
-    logger.info("Optimization workflow graph built successfully")
+    logger.debug("Optimization workflow graph built successfully")
     return graph

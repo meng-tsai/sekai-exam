@@ -33,7 +33,7 @@ def generate_users(langsmith_client: LangSmithClient) -> list[dict]:
     Returns:
         A list of user dictionaries.
     """
-    logger.info("Generating synthetic user data using LangSmith prompt...")
+    logger.debug("Generating synthetic user data using LangSmith prompt...")
 
     # Pull the user generation prompt from LangSmith
     user_prompt_runnable = langsmith_client.pull_prompt(
@@ -58,7 +58,7 @@ def generate_stories(langsmith_client: LangSmithClient) -> list[dict]:
     Returns:
         A list of story dictionaries.
     """
-    logger.info("Generating synthetic story data using LangSmith prompt...")
+    logger.debug("Generating synthetic story data using LangSmith prompt...")
 
     # Pull the story generation prompt from LangSmith
     story_prompt_runnable = langsmith_client.pull_prompt(
@@ -87,7 +87,7 @@ def synthesize_and_save_data(
         stories_filepath: The path to save the stories JSON file.
         users_filepath: The path to save the users JSON file.
     """
-    logger.info("Generating synthetic data using LangSmith prompts...")
+    logger.debug("Generating synthetic data using LangSmith prompts...")
 
     # Generate users and stories separately
     users = generate_users(langsmith_client)

@@ -21,8 +21,8 @@ def pick_users_node(state: OptimizationState) -> Dict[str, Any]:
     - Updates State with: { "current_user_batch": List[Dict] }
     """
     logger.info("=== PICK USERS NODE ===")
-    logger.info(f"Total training users available: {len(state['full_training_users'])}")
-    logger.info(f"Batch size requested: {state['config']['user_per_batch']}")
+    logger.debug(f"Total training users available: {len(state['full_training_users'])}")
+    logger.debug(f"Batch size requested: {state['config']['user_per_batch']}")
 
     # Use current time as random seed for completely random selection
     random.seed(time.time())
@@ -42,8 +42,8 @@ def pick_users_node(state: OptimizationState) -> Dict[str, Any]:
         # Use random.sample for proper random selection without replacement
         selected_batch = random.sample(state["full_training_users"], batch_size)
 
-    logger.info(f"Selected {len(selected_batch)} users for current batch")
-    logger.info(
+    logger.debug(f"Selected {len(selected_batch)} users for current batch")
+    logger.debug(
         f"Selected user IDs: {[user.get('user_id', 'unknown') for user in selected_batch]}"
     )
 

@@ -124,9 +124,9 @@ def generate_groundtruths_node(state: OptimizationState) -> Dict[str, Any]:
 
         # Log results
         for user_id, ground_truths in batch_ground_truths.items():
-            logger.info(f"User {user_id}: ground truth = {ground_truths}")
+            logger.debug(f"User {user_id}: ground truth = {ground_truths}")
 
-        logger.info(
+        logger.debug(
             f"Completed ground truth generation for {len(batch_ground_truths)} users"
         )
 

@@ -32,12 +32,14 @@ def optimize_prompt_node(state: OptimizationState) -> Dict[str, Any]:
                           "best_strategy_prompt": str, "best_score": float, "best_evaluation": Dict }
     """
     logger.info("=== OPTIMIZE PROMPT NODE ===")
-    logger.info(f"Current iteration: {state['iteration_count']}")
-    logger.info(f"Current strategy prompt: {state['current_strategy_prompt'][:100]}...")
-    logger.info(
+    logger.debug(f"Current iteration: {state['iteration_count']}")
+    logger.debug(
+        f"Current strategy prompt: {state['current_strategy_prompt'][:100]}..."
+    )
+    logger.debug(
         "Evaluation result:\n%s", json.dumps(state["evaluation_result"], indent=2)
     )
-    logger.info(
+    logger.debug(
         "Historical evaluations: %s", json.dumps(state["evaluation_history"], indent=2)
     )
 
@@ -60,12 +62,12 @@ def optimize_prompt_node(state: OptimizationState) -> Dict[str, Any]:
         best_score = current_score
         best_evaluation = state["evaluation_result"].copy()
     else:
-        logger.info(
+        logger.debug(
             f"Score {current_score} did not beat best score {state['best_score']}"
         )
 
-    logger.info(f"Current best prompt: {best_prompt[:100]}...")
-    logger.info(f"Current best score: {best_score}")
+    logger.debug(f"Current best prompt: {best_prompt[:100]}...")
+    logger.debug(f"Current best score: {best_score}")
 
     try:
         # Setup LangSmith client and chain
@@ -92,9 +94,9 @@ def optimize_prompt_node(state: OptimizationState) -> Dict[str, Any]:
         else:
             history_text = "No previous evaluations"
 
-        logger.info(f"Sending optimization request to LLM")
-        logger.info(f"Current score: {current_score}")
-        logger.info(f"Current feedback: {current_feedback}")
+        logger.debug(f"Sending optimization request to LLM")
+        logger.debug(f"Current score: {current_score}")
+        logger.debug(f"Current feedback: {current_feedback}")
 
         # Call LLM for prompt optimization
         result = chain.invoke(
@@ -108,7 +110,7 @@ def optimize_prompt_node(state: OptimizationState) -> Dict[str, Any]:
 
         # Extract the new strategy prompt
         new_strategy_prompt = result["new_strategy_prompt"]
-        logger.info(f"Generated new strategy prompt: {new_strategy_prompt[:100]}...")
+        logger.debug(f"Generated new strategy prompt: {new_strategy_prompt[:100]}...")
 
     except Exception as e:
         logger.error(f"Critical error in prompt optimization: {e}", exc_info=True)
@@ -119,8 +121,8 @@ def optimize_prompt_node(state: OptimizationState) -> Dict[str, Any]:
     updated_history = state["evaluation_history"] + [state["evaluation_result"]]
     next_iteration = state["iteration_count"] + 1
 
-    logger.info(f"Updated evaluation history (now {len(updated_history)} entries)")
-    logger.info(f"Next iteration: {next_iteration}")
+    logger.debug(f"Updated evaluation history (now {len(updated_history)} entries)")
+    logger.debug(f"Next iteration: {next_iteration}")
 
     return {
         "current_strategy_prompt": new_strategy_prompt,

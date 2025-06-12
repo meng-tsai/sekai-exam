@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
     # Initialize story repository
     stories_repo = InMemoryStoryRepository(stories_filepath=DATA_DIR / "stories.json")
-    logger.info(
+    logger.debug(
         f"Loaded story repository with {len(stories_repo.get_all_stories())} stories"
     )
     test_user_batch = [
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     try:
         # Run the evaluation agent with the batch data
         logger.info("\n--- Executing Evaluation Agent ---")
-        logger.info(
+        logger.debug(
             "Agent will evaluate pre-generated recommendations for all users..."
         )
 
@@ -275,10 +275,10 @@ if __name__ == "__main__":
         logger.info(f"  {result['feedback']}")
 
         logger.info("\n--- Test Summary ---")
-        logger.info(
+        logger.debug(
             "✅ Evaluation agent successfully processed user batch with pre-generated recommendations"
         )
-        logger.info(
+        logger.debug(
             "✅ This simulates the expected LangGraph flow: Recommend → Evaluate → Optimize"
         )
 

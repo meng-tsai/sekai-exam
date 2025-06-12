@@ -30,7 +30,7 @@ def simulate_tags_node(state: OptimizationState) -> Dict[str, Any]:
     - Updates State with: { "batch_simulated_tags": Dict[str, List[str]] }
     """
     logger.info("=== SIMULATE TAGS NODE ===")
-    logger.info(
+    logger.debug(
         f"Processing {len(state['current_user_batch'])} users for tag simulation"
     )
 
@@ -55,7 +55,7 @@ def simulate_tags_node(state: OptimizationState) -> Dict[str, Any]:
             for user in users
         ]
 
-        logger.info(f"Sending batch of {len(user_profiles)} user profiles to LLM")
+        logger.debug(f"Sending batch of {len(user_profiles)} user profiles to LLM")
 
         # Single batch LLM call
         result = chain.invoke({"user_batch": user_profiles})
@@ -69,13 +69,13 @@ def simulate_tags_node(state: OptimizationState) -> Dict[str, Any]:
                 # Extract tags for this user from LLM response
                 tags = result.get("user_tags", {}).get(user_id, [])
                 batch_simulated_tags[user_id] = tags
-                logger.info(f"User {user_id}: simulated tags = {tags}")
+                logger.debug(f"User {user_id}: simulated tags = {tags}")
             except Exception as e:
                 logger.error(f"Failed to get tags for user {user_id}: {e}")
                 # Use empty list for failed users
                 batch_simulated_tags[user_id] = []
 
-        logger.info(f"Completed tag simulation for {len(batch_simulated_tags)} users")
+        logger.debug(f"Completed tag simulation for {len(batch_simulated_tags)} users")
 
         return {"batch_simulated_tags": batch_simulated_tags}
 
